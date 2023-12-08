@@ -1,0 +1,6 @@
+manual scheduling using Nodename property
+manual scheduling using NodeSelector property
+manual Scheduling using  NodeAffinity & AntiAffinity
+manual scheduling using pod Affinity and Anti-affinity
+manual Scheduling usig taints and Tolerations
+Request and Limit with resourc 
