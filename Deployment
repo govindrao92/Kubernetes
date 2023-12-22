@@ -9,3 +9,22 @@ It also defines how the updates to the application should be rolled out, whether
 By using a deployment, Kubernetes ensures that the desired state of the application is maintained, continuously monitoring for any changes and taking necessary actions to reconcile the current state with the desired state. It enables easy scalability, rolling updates, and automatic rollbacks in case of failures.
 
 Deployments are typically accessed using the Kubernetes API, but can also be managed using command-line tools like kubectl.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+    spec:
+      containers:
+      - name: sample-container
+        image: sample-image:latest
+        ports:
+        - containerPort: 8080
