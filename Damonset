@@ -1,1 +1,66 @@
+In Kubernetes (k8s), a DaemonSet is a type of controller that ensures that all or some nodes in a cluster run a copy of a specific Pod. It ensures that a specific Pod is scheduled and maintained on all or certain nodes based on the defined criteria.
 
+DaemonSets are primarily used for running cluster-level daemons or system utilities on all or specific nodes. Examples of such daemons include log collectors, monitoring agents, or networking-related tasks. DaemonSets are valuable when you need to ensure that a specific Pod/pod instance runs on every node or a subset of nodes in the cluster.
+
+DaemonSets use labels and selectors to choose the nodes where the pods should be scheduled and ensure that they are maintained there. The controller automatically creates and destroys pods as nodes join or leave the cluster or labels on nodes change.
+
+Overall, a DaemonSet ensures that one or more instances of a specific Pod is running on a set of nodes in a Kubernetes cluster, allowing for the deployment and management of infrastructure-specific processes or utilities.
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd-daemonset
+  namespace: logging
+spec:
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      containers:
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:v1-debian-kafka # adjust image version
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+        env:
+        - name: FLUENT_CONF_DIR
+          value: /etc/fluent/conf.d
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+  tolerations:
+  - operator: "Exists"
+    key: "node-role.kubernetes.io/control-plane"
+    effect: "NoSchedule"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: logging
+data:
+  main.conf: |
+    <source>
+      @type tail
+      path /var/log/nginx/access.log
+      tag nginx.access
+    </source>
+
+    <match nginx.access>
+      @type elasticsearch
+      host elasticsearch-master
+      port 9200
+      index nginx-access-%Y.%m.%d
+    </match>
